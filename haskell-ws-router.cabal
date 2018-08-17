@@ -18,7 +18,7 @@ cabal-version:       >=1.10
 executable haskell-client
   main-is:             Client.hs
   hs-source-dirs:      src
-  build-depends:       base >=4.9 && <4.10
+  build-depends:       base 
                      , text >= 1.2.2.1
                      , network >= 2.6.3.1
                      , mtl >= 2.2.1
@@ -29,7 +29,7 @@ executable haskell-ws-router
   main-is:             Main.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.9 && <4.10
+  build-depends:       base 
                      , http-types
                      , mtl >= 2.2.1
                      , network >= 2.6.3.1
