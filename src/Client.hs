@@ -15,7 +15,8 @@ import System.Process
 import qualified Data.Text           as T
 import qualified Data.Text.IO        as T
 import qualified Network.WebSockets  as WS
-
+import System.Environment
+import qualified System.Exit         as E
 
 --------------------------------------------------------------------------------
 app :: WS.ClientApp ()
@@ -38,5 +39,19 @@ app conn = do
 
 
 --------------------------------------------------------------------------------
+mainConnect :: String -> IO ()
+mainConnect host = withSocketsDo $ WS.runClient host 3000 "/" app
+
+usage   = putStrLn "Usage: haskell-client [-vh] host"
+version = putStrLn "Haskell client 0.1"
+exit    = E.exitWith E.ExitSuccess
+die     = E.exitWith (E.ExitFailure 1)
+
+parse :: [String] -> IO ()
+parse ["-h"] = usage   >> exit
+parse ["-v"] = version >> exit
+parse []     = usage >> die
+parse [host]   = mainConnect host >> exit
+
 main :: IO ()
-main = withSocketsDo $ WS.runClient "127.0.0.1" 3000 "/" app
+main = getArgs >>= parse >> (putStr "all done")

@@ -43,6 +43,7 @@ withoutClient clientId = List.filter ((/=) clientId . fst)
 
 broadcast :: ClientId -> Concurrent.MVar State -> Text.Text -> IO ()
 broadcast clientId stateRef msg = do
+  putStrLn $ Text.unpack msg
   clients <- Concurrent.readMVar stateRef
   let otherClients = withoutClient clientId clients
   Monad.forM_ otherClients $ \(_, conn) ->
