@@ -17,6 +17,7 @@ import qualified Data.Text.IO        as T
 import qualified Network.WebSockets  as WS
 import System.Environment
 import qualified System.Exit         as E
+import qualified Server              as S
 
 --------------------------------------------------------------------------------
 app :: WS.ClientApp ()
@@ -26,8 +27,7 @@ app conn = do
     -- Fork a thread that writes WS data to stdout
     _ <- forkIO $ forever $ do
         msg <- WS.receiveData conn
-        r <- createProcess (proc "bash" [ "-c", T.unpack msg ])
-        liftIO $ T.putStrLn msg
+        processMsg msg
 
     -- Read from stdin and write to WS
     let loop = do
@@ -37,12 +37,17 @@ app conn = do
     loop
     WS.sendClose conn ("Bye!" :: Text)
 
+processMsg :: T.Text -> IO ()
+processMsg msg = do
+  r <- createProcess (proc "bash" [ "-c", T.unpack msg ])
+  liftIO $ T.putStrLn msg
+
 
 --------------------------------------------------------------------------------
 mainConnect :: String -> IO ()
 mainConnect host = withSocketsDo $ WS.runClient host 3000 "/" app
 
-usage   = putStrLn "Usage: haskell-client [-vh] host"
+usage   = putStrLn "Usage: haskell-client [-vhd] host"
 version = putStrLn "Haskell client 0.1"
 exit    = E.exitWith E.ExitSuccess
 die     = E.exitWith (E.ExitFailure 1)
@@ -50,6 +55,7 @@ die     = E.exitWith (E.ExitFailure 1)
 parse :: [String] -> IO ()
 parse ["-h"] = usage   >> exit
 parse ["-v"] = version >> exit
+parse ["-d"] = S.run >> exit
 parse []     = usage >> die
 parse [host]   = mainConnect host >> exit
 

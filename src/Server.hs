@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Main where
+module Server where
 
 import qualified Control.Concurrent             as Concurrent
 import qualified Control.Exception              as Exception
@@ -41,6 +41,9 @@ listen conn clientId stateRef = Monad.forever $ do
 withoutClient :: ClientId -> State -> State
 withoutClient clientId = List.filter ((/=) clientId . fst)
 
+-- withoutClients :: [ClientId] -> State -> State
+-- withoutClients clients = List.filter ((/=) clients 
+
 broadcast :: ClientId -> Concurrent.MVar State -> Text.Text -> IO ()
 broadcast clientId stateRef msg = do
   putStrLn $ Text.unpack msg
@@ -57,14 +60,17 @@ wsApp stateRef pendingConn = do
   Exception.finally
     (listen conn clientId stateRef)
     (disconnectClient clientId stateRef)
-    
-main :: IO ()
-main = do
+
+
+run :: IO ()
+run = do
+  putStrLn "starting daemon"
   state <- Concurrent.newMVar []
   Warp.run 3000 $ WS.websocketsOr
     WS.defaultConnectionOptions
     (wsApp state)
     httpApp
+
 
 httpApp :: Wai.Application
 httpApp _ respond = respond $ Wai.responseLBS Http.status400 [] "Not a websocket request"
